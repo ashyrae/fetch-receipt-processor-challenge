@@ -1,7 +1,0 @@
-syntax proto3;
-
-package points;
-
-message Points {
-    int64 points = 1;
-}

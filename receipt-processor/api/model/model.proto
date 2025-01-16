@@ -1,0 +1,23 @@
+syntax proto3;
+
+package model;
+
+// A Receipt contains details present on a provided receipt to-be-processed.
+message Receipt {
+     string retailer = 1;
+     string purchaseDate = 2;
+     string purchaseTime = 3;
+     repeated Item items = 4;
+     string total = 5;
+}
+
+// An Item contains details of a purchase item present in a Receipt to-be-processed.
+message Item {
+    string shortDescription = 1;
+    string price = 2;
+}
+
+// Points contain an arbitrary number of points, corresponding to the total value of a processed Receipt.
+message Points {
+    int64 points = 1;
+}
