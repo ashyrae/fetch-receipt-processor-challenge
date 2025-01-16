@@ -1,0 +1,64 @@
+/**
+  * This project uses Google's Protocol Buffers ('Protobuf'). (GitHub Repo: https://github.com/protocolbuffers/protobuf)
+  *
+  * Protobuf is a language-and-platform neutral way of serializing structured data,
+  * supporting language bindings and a canonical encoding in JSON.
+  *
+  * Read the Protobuf documentation here: (https://protobuf.dev/overview/)
+  */
+
+syntax proto3;
+
+/**
+  * Protobuf ('.proto') file imports are alphabetically sorted in the following order: Internal Repositories, External Repositories, Current Repository
+  * This concisely & neatly self-documents location and ownership of all '.proto' files.
+  */
+
+import "google/api/annotations.proto";
+import "google/rpc/status.proto";
+
+import "model/points.proto";
+import "model/receipt.proto";
+
+/**
+  * 
+  * This concisely & neatly self-documents location and ownership of all '.proto' files.
+  */
+
+// ReceiptService is a gRPC service that provides HTTP routes for the processing of receipts, and the awarding of points.
+service ReceiptService {
+    // ProcessReceipt receives a ProcessRequest containing a Receipt, and a ProcessResponse returning the ID string of a receipt.
+    rpc ProcessReceipt(ProcessReceiptRequest) returns (ProcessReceiptResponse) {
+        option (google.api.http) = {
+            get: "/receipts/process"
+        };
+    };
+
+    // ProcessReceiptRequest contains a Receipt, containing purchase information to be processed.
+    message ProcessReceiptRequest {
+        Receipt receipt = 1;
+    };
+
+    // ProcessReceiptResponse contains a unique identifying string representing a processed Receipt.
+    message ProcessReceiptResponse {
+        string id = 1;
+    };
+
+    // AwardPoints receives an AwardPointsRequest containing the ID string of a receipt, and returns an AwardPointsResponse containing the associated points.
+    rpc AwardPoints(AwardPointsRequest) returns (AwardPointsResponse) {
+        option (google.api.http) = {
+            get: "/receipts/{id}/points"
+        };
+    };
+
+
+    message AwardPointsRequest {
+        string id = 1;
+    };
+
+
+    message AwardPointsResponse {
+        Points points = 1;
+    };
+    
+}
