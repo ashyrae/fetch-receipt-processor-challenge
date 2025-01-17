@@ -12,7 +12,7 @@
   * A Protobuf `package` must be the next non-comment, non-whitespace line in a `.proto` file.
   */
 
-syntax proto3;
+syntax = "proto3";  
 
 package receipt_service;
 
@@ -21,22 +21,17 @@ package receipt_service;
   *
   * 1. Internal Remote Repositories (`import "ashyrae/example-repo/example.proto"`)
   * 2. External Repositories (`import "example-vendor/vendor-repo/vendor.proto"`)
-  * 3. Current Repository (`import "current-repo/model/example.proto"`)
+  * 3. Current Repository (`import "current-repo/api/proto/example.proto"`)
   *
   * If no imports exist for a category, 
   * This concisely & neatly self-documents location and ownership of all `.proto` files.
-  *
-  * Data modeling should occur in its own `.proto` files, under the `model` directory.
-  * Any Protobuf type that lives in another `.proto` file **must** be imported in order to use its contents!
   */
 
 import "google/api/annotations.proto";
 import "google/rpc/status.proto";
 
-import "model/model.proto";
-
 // Specify the Go package where the generated code will be placed.
-option go_package = "github.com/ashyrae/fetch-receipt-processor-challenge/service";
+option go_package = "src/service/pb";
 
 /**
   * 
@@ -98,4 +93,24 @@ message AwardPointsRequest {
 // AwardPointsResponse contains an single instance of an arbitrary amount of Points.
 message AwardPointsResponse {
     Points points = 1;
+}
+
+// A Receipt contains details present on a provided receipt to-be-processed.
+message Receipt {
+    string retailer = 1;
+    string purchaseDate = 2;
+    string purchaseTime = 3;
+    repeated Item items = 4;
+    string total = 5;
+}
+
+// An Item contains details of a purchase item present in a Receipt to-be-processed.
+message Item {
+   string shortDescription = 1;
+   string price = 2;
+}
+
+// Points contain an arbitrary number of points, corresponding to the total value of a processed Receipt.
+message Points {
+   int64 points = 1;
 }
