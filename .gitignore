@@ -1,2 +1,3 @@
 vendor/*
 vcpkg
+go.sum
