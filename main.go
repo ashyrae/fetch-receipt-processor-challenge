@@ -4,13 +4,17 @@ import (
 	ctx "context"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	pb "github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/api/proto"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
 type receiptService struct {
@@ -36,13 +40,33 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterReceiptServiceServer(s, &receiptService{}) // Register the HelloService with both methods
-
+	pb.RegisterReceiptServiceServer(s, &receiptService{}) // Register the service
 	// Enable server reflection
 	reflection.Register(s)
 
 	// Start serving in a goroutine to allow shutdown to proceed in parallel
 	go startServer(s, lis)
+
+	conn, err := grpc.NewClient("0.0.0.0:50051")
+	if err != nil {
+		log.Fatalln("Failed to dial server:", err)
+	}
+
+	gwmux := runtime.NewServeMux()
+	err = pb.RegisterReceiptServiceHandler(ctx.Background(), gwmux, conn)
+	if err != nil {
+		log.Fatalln("Failed to register gateway:", err)
+	}
+
+	gwServer := &http.Server{
+		Addr:    ":8081",
+		Handler: gwmux,
+	}
+
+	log.Println("Serving gRPC-Gateway for REST on http://0.0.0.0:8081")
+	if err := gwServer.ListenAndServe(); err != nil {
+		log.Fatalf("Failed to serve gRPC-Gateway server: %v", err)
+	}
 
 	// Wait for the server to shut down gracefully when an OS signal is received
 	waitForShutdown(s)
@@ -54,6 +78,7 @@ func startServer(s *grpc.Server, lis net.Listener) {
 	if err := s.Serve(lis); err != nil && err != grpc.ErrServerStopped {
 		log.Fatalf("failed to serve: %v", err)
 	}
+
 }
 
 // Wait for interrupt signal to gracefully shutdown the server

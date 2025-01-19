@@ -1,3 +1,4 @@
 vendor/*
 vcpkg
 go.sum
+fetch-receipt-processor-challenge.exe
