@@ -16,7 +16,7 @@
 // - protoc             v5.29.3
 // source: service.proto
 
-package pb
+package proto
 
 import (
 	context "context"
@@ -31,8 +31,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReceiptService_ProcessReceipt_FullMethodName = "/service.ReceiptService/ProcessReceipt"
-	ReceiptService_AwardPoints_FullMethodName    = "/service.ReceiptService/AwardPoints"
+	ReceiptService_ProcessReceipt_FullMethodName = "/ashyrae.receipt.ReceiptService/ProcessReceipt"
+	ReceiptService_AwardPoints_FullMethodName    = "/ashyrae.receipt.ReceiptService/AwardPoints"
 )
 
 // ReceiptServiceClient is the client API for ReceiptService service.
@@ -166,7 +166,7 @@ func _ReceiptService_AwardPoints_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ReceiptService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "service.ReceiptService",
+	ServiceName: "ashyrae.receipt.ReceiptService",
 	HandlerType: (*ReceiptServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
