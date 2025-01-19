@@ -10,79 +10,69 @@ import (
 	"syscall"
 
 	pb "github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/api/proto"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	receipt_service "github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/service"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
 )
 
-type receiptService struct {
-	pb.UnimplementedReceiptServiceServer
-}
-
-func (s *receiptService) ProcessReceipt(ctx ctx.Context, req *pb.ProcessReceiptRequest) (res *pb.ProcessReceiptResponse, err error) {
-	// placeholder
-
-	return res, nil
-}
-
-func AwardPoints(ctx ctx.Context, req *pb.AwardPointsRequest) (res *pb.AwardPointsResponse, err error) {
-	// placeholder
-
-	return res, nil
-}
+// TODO @ashyrae: Dedicated Error Types
 
 func main() {
+	// Initialize our loggers
+	il := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	el := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	// Begin listening
+
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		el.Fatalf("Failed to begin listening: %v", err)
 	}
 
-	s := grpc.NewServer()
-	pb.RegisterReceiptServiceServer(s, &receiptService{}) // Register the service
-	// Enable server reflection
-	reflection.Register(s)
+	// Initialize the Receipt Service, info logger, and error logger
+	// We use a goroutine to allow shutdown to proceed in parallel
+	s := receipt_service.NewService()
+	go startServer(lis, s, il, el)
 
-	// Start serving in a goroutine to allow shutdown to proceed in parallel
-	go startServer(s, lis)
+	// grpc-gateway to multiplex
+	// http should go to 8081 to avoid protocol mishaps on 50051
+	if conn, err := grpc.NewClient("0.0.0.0:50051"); err != nil {
+		// everything should explode - gracefully - if we can't reach the server internally
+		el.Fatalln("Failed to dial gRPC server:", err)
+	} else {
+		// mux!
+		gwmux := runtime.NewServeMux()
+		if err = pb.RegisterReceiptServiceHandler(ctx.Background(), gwmux, conn); err != nil {
+			el.Fatalln("Failed to register gateway:", err)
+		} else {
+			gwServer := &http.Server{
+				Addr:    ":8081",
+				Handler: gwmux,
+			}
 
-	conn, err := grpc.NewClient("0.0.0.0:50051")
-	if err != nil {
-		log.Fatalln("Failed to dial server:", err)
-	}
-
-	gwmux := runtime.NewServeMux()
-	err = pb.RegisterReceiptServiceHandler(ctx.Background(), gwmux, conn)
-	if err != nil {
-		log.Fatalln("Failed to register gateway:", err)
-	}
-
-	gwServer := &http.Server{
-		Addr:    ":8081",
-		Handler: gwmux,
-	}
-
-	log.Println("Serving gRPC-Gateway for REST on http://0.0.0.0:8081")
-	if err := gwServer.ListenAndServe(); err != nil {
-		log.Fatalf("Failed to serve gRPC-Gateway server: %v", err)
+			log.Println("Serving Receipt Service gRPC-Gateway for REST on http://0.0.0.0:8081")
+			if err := gwServer.ListenAndServe(); err != nil {
+				el.Fatalf("Failed to serve gRPC-Gateway server for the Receipt Service: %v", err)
+			}
+		}
 	}
 
 	// Wait for the server to shut down gracefully when an OS signal is received
-	waitForShutdown(s)
+	waitForShutdown(s, il)
 }
 
 // Start the gRPC server and listen for incoming connections
-func startServer(s *grpc.Server, lis net.Listener) {
-	log.Println("Server started on port 50051")
+func startServer(lis net.Listener, s *grpc.Server, il *log.Logger, el *log.Logger) {
+	il.Println("gRPC Server starting on port 50051")
 	if err := s.Serve(lis); err != nil && err != grpc.ErrServerStopped {
-		log.Fatalf("failed to serve: %v", err)
+		el.Fatalf("Failed to serve: %v", err)
 	}
 
 }
 
-// Wait for interrupt signal to gracefully shutdown the server
-func waitForShutdown(s *grpc.Server) {
+// Wait for interrupt signal, then gracefully shut down server
+func waitForShutdown(s *grpc.Server, il *log.Logger) {
 	// Create a channel to receive OS signals
 	sigs := make(chan os.Signal, 1)
 	// Create a channel to receive a signal when server shutdown is complete
@@ -94,12 +84,12 @@ func waitForShutdown(s *grpc.Server) {
 	// Start a goroutine that will listen for signals
 	go func() {
 		sig := <-sigs
-		log.Printf("Received signal: %s", sig)
+		il.Printf("Received signal: %s", sig)
 
 		// Perform server shutdown
-		log.Println("Shutting down server...")
+		il.Println("Shutting down server...")
 		s.GracefulStop() // Gracefully stop the server
-		log.Println("Server has been shut down.")
+		il.Println("Server has been shut down.")
 
 		// Notify the main goroutine that we're done
 		done <- true
@@ -107,5 +97,5 @@ func waitForShutdown(s *grpc.Server) {
 
 	// Wait for shutdown to complete
 	<-done
-	log.Println("Graceful shutdown completed")
+	il.Println("Graceful shutdown completed")
 }
