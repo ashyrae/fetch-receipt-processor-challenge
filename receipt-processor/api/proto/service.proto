@@ -14,7 +14,7 @@
 
 syntax = "proto3";  
 
-package receipt_service;
+package service;
 
 /**
   * Protobuf (`.proto`) file imports are alphabetically sorted, following the below priority:
