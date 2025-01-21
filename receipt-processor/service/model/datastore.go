@@ -9,14 +9,14 @@ type ReceiptDB struct {
 	sync.RWMutex
 }
 
-func (db *ReceiptDB) Set(r *Receipt) (err error) {
+func (db *ReceiptDB) Set(r *Receipt) (id string, err error) {
 	if id, err := idFactory(); err != nil {
-		return ErrInternalServer(err.Error())
+		return "", ErrInternalServer(err.Error())
 	} else {
 		db.Lock()
 		defer db.Unlock()
 		db.Store[id] = r
-		return nil
+		return id, nil
 	}
 }
 

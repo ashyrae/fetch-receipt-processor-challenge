@@ -11,13 +11,13 @@ const (
 )
 
 func ErrNotFound(cause string) error {
-	return fmt.Errorf("error %d - Resource was not found: %s", NotFound, cause)
+	return fmt.Errorf("error %d - %s", NotFound, cause)
 }
 
 func ErrBadRequest(cause string) error {
-	return fmt.Errorf("error %d - Request was invalid: %s", NotFound, cause)
+	return fmt.Errorf("error %d - %s", BadRequest, cause)
 }
 
 func ErrInternalServer(cause string) error {
-	return fmt.Errorf("error %d - Unexpected internal server error: %s", Internal, cause)
+	return fmt.Errorf("unexpected error %d - %s", Internal, cause)
 }
