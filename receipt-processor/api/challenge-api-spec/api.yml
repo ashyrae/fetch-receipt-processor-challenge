@@ -70,7 +70,15 @@ components:
                 retailer:
                     description: The name of the retailer or store the receipt is from.
                     type: string
-                    pattern: "^[\\w\\s\\-&]+$"
+                    # Original Fetch Pattern
+                    #
+                    # pattern: "^[\\w\\s\\-&]+$"
+                    # @ashyrae: This regexp is actually invalid!
+                    # @ashyrae: Don't escape ampersands in a character class.
+                    # @ashyrae: I am including a fix to the API spec for accuracy.
+                    #
+                    # Ashyrae Pattern
+                    pattern: "^[\w\s&-]+$"
                     example: "M&M Corner Market"
                 purchaseDate:
                     description: The date of the purchase printed on the receipt.

@@ -30,7 +30,7 @@ func main() {
 		el.Fatalf("Failed to begin listening: %v", err)
 	}
 
-	// Initialize the Receipt Service, info logger, and error logger
+	// Initialize the Receipt Service, DB, info logger, and error logger
 	// We use a goroutine to allow shutdown to proceed in parallel
 	s := receipt_service.NewService()
 	go startServer(lis, s, il, el)
