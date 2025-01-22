@@ -16,7 +16,7 @@ type Receipt struct {
 	Date     string
 	Time     string
 	Total    string
-	Items    []Item
+	Items    []*Item
 }
 
 type Item struct {
@@ -28,17 +28,19 @@ type Points int64
 
 func ProcessReceipt(receipt *pb.Receipt) (validated Receipt, err error) {
 	// parse receipt items
-	receiptItems := make([]Item, 0)
-	for _, item := range receipt.Items {
-		parsed := Item{item.ShortDescription, item.Price}
-		receiptItems = append(receiptItems, parsed)
+	receiptItems := make([]*Item, 0)
+	for _, item := range receipt.GetItems() {
+		parsed := Item{item.GetShortDescription(), item.GetPrice()}
+		receiptItems = append(receiptItems, &parsed)
 	}
 
+	rec := Receipt{receipt.GetRetailer(), receipt.GetPurchaseDate(), receipt.GetPurchaseTime(), receipt.GetTotal(), receiptItems}
+
 	// validate our fields
-	if err := validateReceipt(receipt.Retailer, receipt.PurchaseDate, receipt.PurchaseTime, receipt.Total, receiptItems); err != nil {
+	if err := validateReceipt(receipt.GetRetailer(), receipt.GetPurchaseDate(), receipt.GetPurchaseTime(), receipt.GetTotal(), receiptItems); err != nil {
 		return Receipt{}, err
 	} else {
-		validated = Receipt{receipt.Retailer, receipt.PurchaseDate, receipt.PurchaseTime, receipt.Total, receiptItems}
+		validated = rec
 		return validated, nil
 	}
 }

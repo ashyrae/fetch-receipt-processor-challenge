@@ -14,7 +14,7 @@ func TestReceiptDB_Set(t *testing.T) {
 		Date:     "2025-01-21",
 		Time:     "13:43",
 		Total:    "40.29",
-		Items: []model.Item{
+		Items: []*model.Item{
 			{
 				ShortDescription: "An item at Target",
 				Price:            "40.29",
@@ -37,7 +37,7 @@ func TestReceiptDB_Get(t *testing.T) {
 		Date:     "2025-01-21",
 		Time:     "13:43",
 		Total:    "40.29",
-		Items: []model.Item{
+		Items: []*model.Item{
 			{
 				ShortDescription: "An item at Target",
 				Price:            "40.29",

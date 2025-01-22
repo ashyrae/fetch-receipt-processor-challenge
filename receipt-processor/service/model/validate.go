@@ -22,26 +22,31 @@ func validateReceipt(
 	date string,
 	time string,
 	total string,
-	items []Item,
+	items []*Item,
 ) (err error) {
 	invalid := make([]string, 0)
 
 	if _, e := validateField(retailer, retailer_regexp); e != nil {
 		invalid = append(invalid, "retailer")
+		println(e.Error())
 	}
 
 	if _, e := validateField(date, date_regexp); e != nil {
 		invalid = append(invalid, "date")
+		println(e.Error())
 	}
 
 	if _, e := validateTime(time); e != nil {
 		invalid = append(invalid, "time")
+		println(e.Error())
 	}
 
 	if _, e := validateItems(items); e != nil {
 		invalid = append(invalid, "items")
+		println(e.Error())
 	} else if _, e := validateTotal(total, items); e != nil {
 		invalid = append(invalid, "total")
+		println(e.Error())
 	}
 
 	if len(invalid) > 0 {
@@ -59,7 +64,7 @@ func validateField(field string, regex *regexp.Regexp) (valid bool, err error) {
 	}
 }
 
-func validateTotal(total string, items []Item) (valid bool, err error) {
+func validateTotal(total string, items []*Item) (valid bool, err error) {
 	if v := total_regexp.MatchString(total); !v {
 		return false, ErrBadRequest(fmt.Sprintf("Receipt total is invalid: %d", err))
 	} else {
@@ -79,7 +84,7 @@ func validateTotal(total string, items []Item) (valid bool, err error) {
 	return true, nil
 }
 
-func validateItems(items []Item) (valid bool, err error) {
+func validateItems(items []*Item) (valid bool, err error) {
 	ctrValidated := 0
 	for _, item := range items {
 		sv := shortDesc_regexp.MatchString(item.ShortDescription)

@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	pb "github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/api/proto"
 	model "github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/service/model"
@@ -12,28 +13,27 @@ import (
 
 type ReceiptService struct {
 	pb.UnimplementedReceiptServiceServer
-	store *model.ReceiptDB
+	db *model.ReceiptDB
 }
 
 func (s *ReceiptService) ProcessReceipt(ctx ctx.Context, req *pb.ProcessReceiptRequest) (res *pb.ProcessReceiptResponse, err error) {
-	// parse our receipt fields from JSON
-	// no non-JSON should make it through due to header validation
-	// so we can focus on ensuring it's *valid* JSON that conforms to schema
-	// regex validation in `api.yml`
-	// if not, toss back BadRequest & punt
-	if _, err := model.ProcessReceipt(req.Receipt); err != nil {
+	r := &pb.Receipt{}
+	if err := protojson.Unmarshal([]byte(req.Receipt), r); err != nil {
 		return &pb.ProcessReceiptResponse{}, err
-	} else {
-		res = &pb.ProcessReceiptResponse{Id: ""}
-
 	}
 
-	return res, err
+	if rec, err := model.ProcessReceipt(r); err != nil {
+		return &pb.ProcessReceiptResponse{}, err
+	} else if id, err := s.db.Set(&rec); err != nil {
+		return &pb.ProcessReceiptResponse{}, err
+	} else {
+		return &pb.ProcessReceiptResponse{Id: id}, nil
+	}
 }
 
 func (s *ReceiptService) AwardPoints(ctx ctx.Context, req *pb.AwardPointsRequest) (res *pb.AwardPointsResponse, err error) {
 	// validate that the request actually contains an id of a processed receipt
-	if receipt, err := s.store.Get(req.Id); err != nil {
+	if receipt, err := s.db.Get(req.Id); err != nil {
 		return &pb.AwardPointsResponse{}, err
 	} else {
 		// proceed with award
@@ -42,14 +42,11 @@ func (s *ReceiptService) AwardPoints(ctx ctx.Context, req *pb.AwardPointsRequest
 	}
 }
 
-func NewService() (s *grpc.Server) {
-	// init our DB
-	db := make(map[string]*model.Receipt)
-	store := model.ReceiptDB{Store: db}
+func NewService() (srv *grpc.Server) {
 	// create the server
-	srv := grpc.NewServer()
+	srv = grpc.NewServer()
 	// put it all together & register
-	pb.RegisterReceiptServiceServer(s, &ReceiptService{store: &store})
+	pb.RegisterReceiptServiceServer(srv, &ReceiptService{db: &model.ReceiptDB{Store: make(map[string]*model.Receipt)}})
 	// enable server reflection
 	reflection.Register(srv)
 	return srv

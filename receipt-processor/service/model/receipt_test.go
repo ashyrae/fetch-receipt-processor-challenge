@@ -178,7 +178,7 @@ func Test_AwardPoints(t *testing.T) {
 				Date:     "2025-01-21",
 				Time:     "13:43",
 				Total:    "40.29",
-				Items: []model.Item{
+				Items: []*model.Item{
 					{
 						ShortDescription: "An item at Target",
 						Price:            "40.29",
@@ -193,7 +193,7 @@ func Test_AwardPoints(t *testing.T) {
 				Date:     "2025-01-21",
 				Time:     "13:43",
 				Total:    "1000000000.00",
-				Items: []model.Item{
+				Items: []*model.Item{
 					{
 						ShortDescription: "An item at Superstore",
 						Price:            "1000000000.00",
@@ -208,7 +208,7 @@ func Test_AwardPoints(t *testing.T) {
 				Date:     "2025-01-21",
 				Time:     "13:43",
 				Total:    "0.01",
-				Items: []model.Item{
+				Items: []*model.Item{
 					{
 						ShortDescription: "An item at Superstore",
 						Price:            "0.01",

@@ -14,6 +14,8 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // TODO @ashyrae: Dedicated Error Types
@@ -37,12 +39,21 @@ func main() {
 
 	// grpc-gateway to multiplex
 	// http should go to 8081 to avoid protocol mishaps on 50051
-	if conn, err := grpc.NewClient("0.0.0.0:50051"); err != nil {
+	if conn, err := grpc.NewClient("0.0.0.0:50051", grpc.WithTransportCredentials(insecure.NewCredentials())); err != nil {
 		// everything should explode - gracefully - if we can't reach the server internally
 		el.Fatalln("Failed to dial gRPC server:", err)
 	} else {
 		// mux!
-		gwmux := runtime.NewServeMux()
+		gwmux := runtime.NewServeMux(
+			runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+				MarshalOptions: protojson.MarshalOptions{
+					UseProtoNames: true,
+				},
+				UnmarshalOptions: protojson.UnmarshalOptions{
+					DiscardUnknown: false,
+				},
+			}),
+		)
 		if err = pb.RegisterReceiptServiceHandler(ctx.Background(), gwmux, conn); err != nil {
 			el.Fatalln("Failed to register gateway:", err)
 		} else {

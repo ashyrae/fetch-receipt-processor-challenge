@@ -77,7 +77,7 @@ service ReceiptService {
 
 // ProcessReceiptRequest contains a Receipt, containing purchase information to be processed.
 message ProcessReceiptRequest {
-    Receipt receipt = 1;
+    string receipt = 1; 
 }
 
 // ProcessReceiptResponse contains a unique identifying string representing a processed Receipt.
@@ -97,20 +97,20 @@ message AwardPointsResponse {
 
 // A Receipt contains details present on a provided receipt to-be-processed.
 message Receipt {
-    string retailer = 1; // The name of the retailer or store the receipt is from.
-    string purchaseDate = 2; // The date of the purchase printed on the receipt; YYYY-MM-DD format expected.
-    string purchaseTime = 3; // The time of the purchase printed on the receipt. 24-hour time expected.
-    repeated Item items = 4;
-    string total = 5; // The total amount paid on the receipt.
+    string retailer = 1 [json_name="retailer"]; // The name of the retailer or store the receipt is from.
+    string purchaseDate = 2 [json_name="purchaseDate"]; // The date of the purchase printed on the receipt; YYYY-MM-DD format expected.
+    string purchaseTime = 3 [json_name="purchaseTime"]; // The time of the purchase printed on the receipt. 24-hour time expected.
+    repeated Item items = 4 [json_name="items"];
+    string total = 5 [json_name="total"]; // The total amount paid on the receipt.
 }
 
 // An Item contains details of a purchase item present in a Receipt to-be-processed.
 message Item {
-   string shortDescription = 1; // The Short Product Description for the item.
-   string price = 2; // The total price paid for this item.
+   string shortDescription = 1 [json_name="shortDescription"]; // The Short Product Description for the item.
+   string price = 2 [json_name="price"]; // The total price paid for this item.
 }
 
 // Points contain an arbitrary number of points, corresponding to the total value of a processed Receipt.
 message Points {
-   int64 points = 1;
+   int64 points = 1 [json_name="points"];
 }
