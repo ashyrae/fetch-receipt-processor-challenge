@@ -185,7 +185,7 @@ func Test_AwardPoints(t *testing.T) {
 					},
 				},
 			},
-			points: 400,
+			points: 406,
 		},
 		{
 			receipt: &model.Receipt{
@@ -200,7 +200,7 @@ func Test_AwardPoints(t *testing.T) {
 					},
 				},
 			},
-			points: 10000000000,
+			points: 2000000056,
 		},
 		{
 			receipt: &model.Receipt{

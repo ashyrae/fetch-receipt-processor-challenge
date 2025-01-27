@@ -3,7 +3,6 @@ module github.com/ashyrae/fetch-receipt-processor-challenge
 go 1.23.4
 
 require (
-	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250124145028-65684f501c47
