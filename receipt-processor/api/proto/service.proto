@@ -28,7 +28,6 @@ package ashyrae.receipt;
   */
 
 import "google/api/annotations.proto";
-import "google/rpc/status.proto";
 
 // Specify the Go package where the generated code will be placed.
 option go_package = "./api/proto";

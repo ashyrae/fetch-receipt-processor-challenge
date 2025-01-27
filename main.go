@@ -17,14 +17,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const (
+	GRPC_PORT = ":80"
+	HTTP_PORT = ":8081"
+)
+
 func main() {
 	// Initialize our loggers
 	il := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	el := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Begin listening
-
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", GRPC_PORT)
 	if err != nil {
 		el.Fatalf("Failed to begin listening: %v", err)
 	}
@@ -35,26 +39,29 @@ func main() {
 	go startServer(lis, s, il, el)
 
 	// grpc-gateway to multiplex
-	// http should go to 8081 to avoid protocol mishaps on 50051
-	if conn, err := grpc.NewClient("0.0.0.0:50051", grpc.WithTransportCredentials(insecure.NewCredentials())); err != nil {
+	if conn, err := grpc.NewClient("0.0.0.0"+GRPC_PORT, grpc.WithTransportCredentials(insecure.NewCredentials())); err != nil {
 		// everything should explode - gracefully - if we can't reach the server internally
 		el.Fatalln("Failed to dial gRPC server:", err)
 	} else {
 		// mux!
 		gwmux := runtime.NewServeMux(
+			// default json unmarshaler doesn't handle unmarshaling to proto messages well,
+			// so we'll use one that supports that
 			runtime.WithMarshalerOption("application/json", &runtime.JSONPb{}),
 		)
+
+		// register the server
 		if err = pb.RegisterReceiptServiceHandler(ctx.Background(), gwmux, conn); err != nil {
 			el.Fatalln("Failed to register gateway:", err)
 		} else {
 			gwServer := &http.Server{
-				Addr:    ":8081",
+				Addr:    HTTP_PORT,
 				Handler: gwmux,
 			}
 
-			log.Println("Serving Receipt Service gRPC-Gateway for REST on http://0.0.0.0:8081")
+			log.Printf("Serving Receipt Service REST API via gRPC-Gateway @ http://0.0.0.0%s", HTTP_PORT)
 			if err := gwServer.ListenAndServe(); err != nil {
-				el.Fatalf("Failed to serve gRPC-Gateway server for the Receipt Service: %v", err)
+				el.Fatalf("Failed to serve gRPC-Gateway HTTP server for the Receipt Service: %v", err)
 			}
 		}
 	}
@@ -65,7 +72,7 @@ func main() {
 
 // Start the gRPC server and listen for incoming connections
 func startServer(lis net.Listener, s *grpc.Server, il *log.Logger, el *log.Logger) {
-	il.Println("gRPC Server starting on port 50051")
+	il.Println("gRPC Server starting on port 80")
 	if err := s.Serve(lis); err != nil && err != grpc.ErrServerStopped {
 		el.Fatalf("Failed to serve: %v", err)
 	}
