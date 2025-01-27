@@ -17,8 +17,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// TODO @ashyrae: Dedicated Error Types
-
 func main() {
 	// Initialize our loggers
 	il := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
