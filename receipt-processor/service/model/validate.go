@@ -17,6 +17,8 @@ var date_regexp = regexp.MustCompile(`^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-
 var shortDesc_regexp = regexp.MustCompile(`^[\w\s\-]+$`)
 var price_regexp = regexp.MustCompile(`^\d+\.\d{2}$`)
 
+var alphanumeric_regexp = regexp.MustCompile("^[a-zA-Z0-9_]*$")
+
 func validateReceipt(
 	retailer string,
 	date string,

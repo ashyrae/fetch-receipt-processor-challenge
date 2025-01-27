@@ -23,7 +23,7 @@ func (db *ReceiptDB) Create(r *Receipt) (id string, err error) {
 
 func (db *ReceiptDB) Set(idSet string, r *Receipt) (id string, err error) {
 	if idSet == "" {
-		return "", ErrInternalServer("No Receipt ID was provided to Set")
+		return "", ErrBadRequest("No Receipt ID was provided to Set")
 	} else {
 		id = idSet
 		db.Lock()
@@ -38,7 +38,7 @@ func (db *ReceiptDB) Get(id string) (receipt *Receipt, err error) {
 	db.RLock()
 	defer db.RUnlock()
 	if r, exists := db.Store[id]; !exists {
-		return &Receipt{}, ErrNotFound("Receipt was not found: " + id)
+		return &Receipt{}, ErrNotFound("Receipt was not found for receipt id: " + id)
 	} else {
 		return r, nil
 	}
