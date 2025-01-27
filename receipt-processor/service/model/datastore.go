@@ -9,7 +9,8 @@ type ReceiptDB struct {
 	sync.RWMutex
 }
 
-func (db *ReceiptDB) Set(r *Receipt) (id string, err error) {
+func (db *ReceiptDB) Create(r *Receipt) (id string, err error) {
+	// yes, generate an id & proceed
 	if id, err := idFactory(); err != nil {
 		return "", ErrInternalServer(err.Error())
 	} else {
@@ -18,6 +19,19 @@ func (db *ReceiptDB) Set(r *Receipt) (id string, err error) {
 		db.Store[id] = r
 		return id, nil
 	}
+}
+
+func (db *ReceiptDB) Set(idSet string, r *Receipt) (id string, err error) {
+	if idSet == "" {
+		return "", ErrInternalServer("No Receipt ID was provided to Set")
+	} else {
+		id = idSet
+		db.Lock()
+		defer db.Unlock()
+		db.Store[id] = r
+		return id, nil
+	}
+
 }
 
 func (db *ReceiptDB) Get(id string) (receipt *Receipt, err error) {

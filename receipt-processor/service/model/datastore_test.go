@@ -6,6 +6,10 @@ import (
 	"github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/service/model"
 )
 
+const (
+	newId = ""
+)
+
 func TestReceiptDB_Set(t *testing.T) {
 	var testDB = model.ReceiptDB{Store: make(map[string]*model.Receipt)}
 
@@ -22,7 +26,7 @@ func TestReceiptDB_Set(t *testing.T) {
 		},
 	}
 
-	if id, err := testDB.Set(r); err != nil {
+	if id, err := testDB.Set(newId, r); err != nil {
 		t.Errorf("Error encountered setting test receipt into DB: %d", err)
 	} else if receipt := testDB.Store[id]; receipt != r {
 		t.Errorf("Receipt set in DB is not identical to provided receipt: expected %v, received %v", r, receipt)

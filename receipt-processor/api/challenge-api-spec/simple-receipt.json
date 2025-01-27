@@ -6,7 +6,7 @@
     "items": [
         {
             "shortDescription": "Pepsi - 12-oz",
-            "price": 1.25
+            "price": "1.25"
         }
     ]
 }

@@ -5,7 +5,6 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/encoding/protojson"
 
 	pb "github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/api/proto"
 	model "github.com/ashyrae/fetch-receipt-processor-challenge/receipt-processor/service/model"
@@ -17,14 +16,17 @@ type ReceiptService struct {
 }
 
 func (s *ReceiptService) ProcessReceipt(ctx ctx.Context, req *pb.ProcessReceiptRequest) (res *pb.ProcessReceiptResponse, err error) {
-	r := &pb.Receipt{}
-	if err := protojson.Unmarshal([]byte(req.Receipt), r); err != nil {
-		return &pb.ProcessReceiptResponse{}, err
+	r := &pb.Receipt{
+		Retailer:     req.Retailer,
+		PurchaseDate: req.PurchaseDate,
+		PurchaseTime: req.PurchaseTime,
+		Items:        req.Items,
+		Total:        req.Total,
 	}
 
 	if rec, err := model.ProcessReceipt(r); err != nil {
 		return &pb.ProcessReceiptResponse{}, err
-	} else if id, err := s.db.Set(&rec); err != nil {
+	} else if id, err := s.db.Create(&rec); err != nil {
 		return &pb.ProcessReceiptResponse{}, err
 	} else {
 		return &pb.ProcessReceiptResponse{Id: id}, nil
@@ -36,9 +38,22 @@ func (s *ReceiptService) AwardPoints(ctx ctx.Context, req *pb.AwardPointsRequest
 	if receipt, err := s.db.Get(req.Id); err != nil {
 		return &pb.AwardPointsResponse{}, err
 	} else {
-		// proceed with award
-		award := model.AwardPoints(receipt)
-		return &pb.AwardPointsResponse{Points: &pb.Points{Points: award}}, nil
+		// check if receipt was already awarded once
+		if receipt.Awarded {
+			// bail out, award nothing
+			return &pb.AwardPointsResponse{Points: &pb.Points{Points: 0}}, nil
+		} else {
+			// proceed with award
+			award := model.AwardPoints(receipt)
+			// flag the receipt as awarded
+			awardedReceipt := receipt
+			awardedReceipt.Awarded = true
+			if _, err := s.db.Set(req.Id, awardedReceipt); err != nil {
+				return &pb.AwardPointsResponse{}, err
+			} else {
+				return &pb.AwardPointsResponse{Points: &pb.Points{Points: award}}, nil
+			}
+		}
 	}
 }
 

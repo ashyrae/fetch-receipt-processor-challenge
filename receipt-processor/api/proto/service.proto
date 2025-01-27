@@ -75,9 +75,13 @@ service ReceiptService {
     };
 }
 
-// ProcessReceiptRequest contains a Receipt, containing purchase information to be processed.
+// ProcessReceiptRequest contains purchase information to be processed.
 message ProcessReceiptRequest {
-    string receipt = 1; 
+    string retailer = 1 [json_name="retailer"]; // The name of the retailer or store the receipt is from.
+    string purchaseDate = 2 [json_name="purchaseDate"]; // The date of the purchase printed on the receipt; YYYY-MM-DD format expected.
+    string purchaseTime = 3 [json_name="purchaseTime"]; // The time of the purchase printed on the receipt. 24-hour time expected.
+    repeated Item items = 4 [json_name="items"];
+    string total = 5 [json_name="total"];
 }
 
 // ProcessReceiptResponse contains a unique identifying string representing a processed Receipt.

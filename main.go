@@ -15,7 +15,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // TODO @ashyrae: Dedicated Error Types
@@ -45,14 +44,7 @@ func main() {
 	} else {
 		// mux!
 		gwmux := runtime.NewServeMux(
-			runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
-				MarshalOptions: protojson.MarshalOptions{
-					UseProtoNames: true,
-				},
-				UnmarshalOptions: protojson.UnmarshalOptions{
-					DiscardUnknown: false,
-				},
-			}),
+			runtime.WithMarshalerOption("application/json", &runtime.JSONPb{}),
 		)
 		if err = pb.RegisterReceiptServiceHandler(ctx.Background(), gwmux, conn); err != nil {
 			el.Fatalln("Failed to register gateway:", err)

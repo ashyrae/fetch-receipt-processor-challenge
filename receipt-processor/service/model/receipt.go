@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	"math"
 	"strconv"
 
@@ -17,6 +18,7 @@ type Receipt struct {
 	Time     string
 	Total    string
 	Items    []*Item
+	Awarded  bool
 }
 
 type Item struct {
@@ -34,10 +36,11 @@ func ProcessReceipt(receipt *pb.Receipt) (validated Receipt, err error) {
 		receiptItems = append(receiptItems, &parsed)
 	}
 
-	rec := Receipt{receipt.GetRetailer(), receipt.GetPurchaseDate(), receipt.GetPurchaseTime(), receipt.GetTotal(), receiptItems}
+	rec := Receipt{receipt.GetRetailer(), receipt.GetPurchaseDate(), receipt.GetPurchaseTime(), receipt.GetTotal(), receiptItems, false}
 
 	// validate our fields
 	if err := validateReceipt(receipt.GetRetailer(), receipt.GetPurchaseDate(), receipt.GetPurchaseTime(), receipt.GetTotal(), receiptItems); err != nil {
+		log.Printf("Error encountered validating receipt: %s", err.Error())
 		return Receipt{}, err
 	} else {
 		validated = rec

@@ -28,25 +28,21 @@ func validateReceipt(
 
 	if _, e := validateField(retailer, retailer_regexp); e != nil {
 		invalid = append(invalid, "retailer")
-		println(e.Error())
 	}
 
 	if _, e := validateField(date, date_regexp); e != nil {
 		invalid = append(invalid, "date")
-		println(e.Error())
 	}
 
 	if _, e := validateTime(time); e != nil {
 		invalid = append(invalid, "time")
-		println(e.Error())
 	}
 
 	if _, e := validateItems(items); e != nil {
 		invalid = append(invalid, "items")
-		println(e.Error())
+
 	} else if _, e := validateTotal(total, items); e != nil {
 		invalid = append(invalid, "total")
-		println(e.Error())
 	}
 
 	if len(invalid) > 0 {
