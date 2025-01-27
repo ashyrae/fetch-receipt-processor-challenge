@@ -1,0 +1,120 @@
+/**
+  * This project uses Google's Protocol Buffers ('Protobuf'). (GitHub Repo: https://github.com/protocolbuffers/protobuf)
+  *
+  * Protobuf is a language-and-platform neutral way of serializing structured data,
+  * supporting language bindings and a canonical encoding in JSON.
+  *
+  * Read the Protobuf documentation here: (https://protobuf.dev/overview/)
+  */
+
+/**
+  * A Protobuf `syntax` (`proto2` or `proto3`) or `editions` (`2023`) must be the first non-comment line in a `.proto` file.
+  * A Protobuf `package` must be the next non-comment, non-whitespace line in a `.proto` file.
+  */
+
+syntax = "proto3";  
+
+package ashyrae.receipt;
+
+/**
+  * Protobuf (`.proto`) file imports are alphabetically sorted, following the below priority:
+  *
+  * 1. Internal Remote Repositories (`import "ashyrae/example-repo/example.proto"`)
+  * 2. External Repositories (`import "example-vendor/vendor-repo/vendor.proto"`)
+  * 3. Current Repository (`import "current-repo/api/proto/example.proto"`)
+  *
+  * If no imports exist for a category, 
+  * This concisely & neatly self-documents location and ownership of all `.proto` files.
+  */
+
+import "google/api/annotations.proto";
+import "google/rpc/status.proto";
+
+// Specify the Go package where the generated code will be placed.
+option go_package = "./api/proto";
+
+/**
+  * 
+  * gRPC Services follow the below structure:
+  *
+  * - Services are sorted alphabetically.
+  * - RPCs are sorted in order of intended operation.
+  * - gRPC Messages are listed below the RPCs they are associated with, in contextual order.
+  * 
+  * A service & its member types should self-describe their purpose with their names.
+  *
+  * service ExampleService {
+  *     rpc ExampleRpc(ExampleRequest) returns (ExampleResponse) {
+  *         option (google.api.http) = {
+  *             get: "/example/route"
+  *         }
+  *     }
+  *     message ExampleRequest {}
+  *     message ExampleResponse {
+  *         string example = 1;
+  *     }
+  * }
+  */
+
+// ReceiptService is a gRPC service that provides HTTP routes for the processing of receipts & the awarding of points.
+service ReceiptService {
+    // ProcessReceipt receives a ProcessRequest containing a Receipt,
+    // and returns a ProcessResponse containing a unique identifying string representing a processed receipt.
+    rpc ProcessReceipt(ProcessReceiptRequest) returns (ProcessReceiptResponse) {
+        option (google.api.http) = {
+            post: "/receipts/process"
+            body: "*"
+        };
+    };
+    // AwardPoints receives an AwardPointsRequest containing a unique identifying string representing a processed receipt,
+    // and returns an AwardPointsResponse containing the associated points being awarded.
+    rpc AwardPoints(AwardPointsRequest) returns (AwardPointsResponse) {
+        option (google.api.http) = {
+            get: "/receipts/{id}/points"
+        };
+    };
+}
+
+// ProcessReceiptRequest contains purchase information to be processed.
+message ProcessReceiptRequest {
+    string retailer = 1 [json_name="retailer"]; // The name of the retailer or store the receipt is from.
+    string purchaseDate = 2 [json_name="purchaseDate"]; // The date of the purchase printed on the receipt; YYYY-MM-DD format expected.
+    string purchaseTime = 3 [json_name="purchaseTime"]; // The time of the purchase printed on the receipt. 24-hour time expected.
+    repeated Item items = 4 [json_name="items"];
+    string total = 5 [json_name="total"];
+}
+
+// ProcessReceiptResponse contains a unique identifying string representing a processed Receipt.
+message ProcessReceiptResponse {
+    string id = 1;
+}
+
+// AwardPointsRequest contains a unique identifying string representing a previously processed Receipt.
+message AwardPointsRequest {
+    string id = 1;
+}
+
+// AwardPointsResponse contains an single instance of an arbitrary amount of Points.
+message AwardPointsResponse {
+    Points points = 1;
+}
+
+// A Receipt contains details present on a provided receipt to-be-processed.
+message Receipt {
+    string retailer = 1 [json_name="retailer"]; // The name of the retailer or store the receipt is from.
+    string purchaseDate = 2 [json_name="purchaseDate"]; // The date of the purchase printed on the receipt; YYYY-MM-DD format expected.
+    string purchaseTime = 3 [json_name="purchaseTime"]; // The time of the purchase printed on the receipt. 24-hour time expected.
+    repeated Item items = 4 [json_name="items"];
+    string total = 5 [json_name="total"]; // The total amount paid on the receipt.
+}
+
+// An Item contains details of a purchase item present in a Receipt to-be-processed.
+message Item {
+   string shortDescription = 1 [json_name="shortDescription"]; // The Short Product Description for the item.
+   string price = 2 [json_name="price"]; // The total price paid for this item.
+}
+
+// Points contain an arbitrary number of points, corresponding to the total value of a processed Receipt.
+message Points {
+   int64 points = 1 [json_name="points"];
+}

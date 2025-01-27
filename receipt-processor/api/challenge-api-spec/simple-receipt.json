@@ -4,6 +4,9 @@
     "purchaseTime": "13:13",
     "total": "1.25",
     "items": [
-        {"shortDescription": "Pepsi - 12-oz", "price": "1.25"}
+        {
+            "shortDescription": "Pepsi - 12-oz",
+            "price": "1.25"
+        }
     ]
 }
