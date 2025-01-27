@@ -11,10 +11,3 @@ To run this program in a terminal:
 ```
 go run main.go
 ```
-
-## Docker
-
-```
-docker build --tag 'ashyrae/receipt-processor' .
-docker run --detach 'ashyrae/receipt-processor'
-```
